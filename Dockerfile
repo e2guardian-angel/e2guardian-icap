@@ -1,28 +1,28 @@
 FROM alpine:3.12.1 as builder
 WORKDIR /tmp/buid
-RUN apk add --update autoconf automake gcc cmake g++ zlib zlib-dev pcre2 pcre2-dev build-base gcc abuild binutils binutils-doc gcc-doc pcre pcre-dev git
-RUN git clone https://github.com/e2guardian/e2guardian.git -b v5.3 && \
-	cd e2guardian && ./autogen.sh && ./configure --prefix=/ --exec_prefix=/usr --datarootdir=/usr/share && make && make install
+ARG E2GUARDIAN_ROOT=/opt/e2guardian
+
+RUN mkdir -p ${E2GUARDIAN_ROOT} \
+  && apk add --update autoconf automake gcc cmake g++ zlib zlib-dev pcre2 pcre2-dev build-base gcc abuild binutils binutils-doc gcc-doc pcre pcre-dev git \
+  && git clone https://github.com/justinschw/e2guardian.git \
+  && cd e2guardian && ./autogen.sh && ./configure --prefix=${E2GUARDIAN_ROOT} && make && make install
 
 FROM alpine:3.12.1
 MAINTAINER Justin Schwartzbeck <justinmschw@gmail.com>
+ARG E2GUARDIAN_ROOT=/opt/e2guardian
 
-COPY --from=builder /etc/e2guardian /etc/e2guardian
-COPY --from=builder /usr/sbin/e2guardian /usr/sbin/e2guardian
-COPY --from=builder /usr/share/doc/e2guardian /usr/share/doc/e2guardian
-COPY --from=builder /usr/share/e2guardian /usr/share/e2guardian
-COPY --from=builder /usr/share/man/man8/e2guardian.8 /usr/share/man/man8/e2guardian.8
+COPY --from=builder /opt /opt
 
-RUN mkdir /var/log/e2guardian
-RUN chmod a+rw /var/log/e2guardian
-
-RUN apk add --update pcre libgcc libstdc++ && \
-	rm -rf /var/cache/apk/*
+RUN mkdir -p ${E2GUARDIAN_ROOT}/var/log/e2guardian \
+  && chown -R nobody:nobody ${E2GUARDIAN_ROOT}/ \
+  && chmod a+rw ${E2GUARDIAN_ROOT}/var/log/e2guardian \
+  && apk add --update pcre libgcc libstdc++ \
+  && rm -rf /var/cache/apk/*
 
 WORKDIR /
 
-COPY e2guardian.conf /etc/e2guardian/e2guardian.conf
-COPY e2guardianf1.conf /etc/e2guardian/e2guardianf1.conf
+COPY e2guardian.conf ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf
+COPY e2guardianf1.conf ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf
 
 ADD ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
