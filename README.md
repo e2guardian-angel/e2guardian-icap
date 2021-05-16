@@ -1,18 +1,20 @@
-#e2guardian-icap-pi
+#e2guardian-icap
 ======================
-This is a docker container made for raspberry pi that contains e2guardian to be configured as an ICAP server.
+This is a docker container that contains e2guardian to be configured as an ICAP server.
 I am creating this docker image as part of a solution for a content filter with squid and e2guardian.
 
 Baseimage
 ======================
-debian:buster
+alpine:3.12.1
+
+**Note:** to use raspberry pi images, just replace the 'x86' in these image names with 'pi'.
 
 ### Quickstart 
 ```bash
 docker run --name e2guardian -d \
   --publish 1344:1344 \
   --volume /path/to/e2gaurdian/lists:/etc/e2guardian/lists \
-  jusschwa/e2guardian-icap-pi
+  jusschwa/e2guardian-icap-x86
 ```
 
 ### For use with squid
@@ -25,5 +27,5 @@ docker run --name e2guardian -d \
   --network e2guardian
   --volume /path/to/e2gaurdian/lists:/etc/e2guardian/lists \
   --name e2guardian
-  jusschwa/e2guardian-icap-pi
+  jusschwa/e2guardian-icap-x86
 ```
