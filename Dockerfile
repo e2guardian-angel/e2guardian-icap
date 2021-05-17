@@ -16,13 +16,14 @@ COPY --from=builder /opt /opt
 RUN mkdir -p ${E2GUARDIAN_ROOT}/var/log/e2guardian \
   && chown -R nobody:nobody ${E2GUARDIAN_ROOT}/ \
   && chmod a+rw ${E2GUARDIAN_ROOT}/var/log/e2guardian \
-  && apk add --update pcre libgcc libstdc++ \
-  && rm -rf /var/cache/apk/*
+  && apk add --update pcre libgcc libstdc++ jq \
+  && rm -rf /var/cache/apk/* \
+  && sed -i "s/^\#*\s*icapport/icapport/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf \
+  && sed -i "s/^\#*\s*maxcontentfiltersize.*$/maxcontentfiltersize=4096/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf \
+  && sed -i "s/^\#*\s*maxcontentramcachescansize.*$/maxcontentramcachescansize=4096/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf \
+  && sed -i "s/^\#*\s*textmimetypes/textmimetypes/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf
 
 WORKDIR /
-
-COPY e2guardian.conf ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf
-COPY e2guardianf1.conf ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf
 
 ADD ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
