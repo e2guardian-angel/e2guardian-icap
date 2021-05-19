@@ -1,9 +1,9 @@
 #!/bin/sh
 GUARDIAN_CONF=/opt/guardian/guardian.json
 CONFIG="$(cat $GUARDIAN_CONF)"
-#E2G_ROOT=/opt/e2guardian/etc/e2guardian
 E2G_GROUP=guardian.angel
 E2G_GROUP_DIR=${E2G_ROOT}/lists/${E2G_GROUP}
+# Set E2G_ROOT to the root of the e2guardian configuration (i.e. /etc/e2guardian)
 
 extract_value () {
     echo "${1}" | jq -r .${2}
@@ -44,6 +44,10 @@ generate_list() {
     done
 }
 
+# Restore original
+E2GUARDIANF1=${E2G_ROOT}/e2guardianf1.conf
+cp ${E2GUARDIANF1}.mod ${E2GUARDIANF1}
+
 if [ -f "${GUARDIAN_CONF}" ]; then
     E2G_CONF=$(extract_value "${CONFIG}" e2guardianConf)
     PHRASELISTS=$(extract_value_compact "${E2G_CONF}" phraseLists)
@@ -51,7 +55,7 @@ if [ -f "${GUARDIAN_CONF}" ]; then
     REGEXPURLLISTS=$(extract_value_compact "${E2G_CONF}" regexpurllists)
     MIMETYPELISTS=$(extract_value_compact "${E2G_CONF}" mimetypelists)
     EXTENSIONSLISTS=$(extract_value_compact "${E2G_CONF}" extensionsLists)
-    mkdir -p ${E2G_GROUP_DIR}
+    cp -r ${E2G_ROOT}/lists/example.group ${E2G_GROUP_DIR}
 
     # Generate phrase lists
     generate_phrase_list "${PHRASELISTS}"
@@ -67,4 +71,10 @@ if [ -f "${GUARDIAN_CONF}" ]; then
 
     # Generate extension lists
     generate_list "${EXTENSIONSLISTS}" extensions
+
+    # Configure e2guardianf1.conf
+    E2GUARDIANF1=${E2G_ROOT}/e2guardianf1.conf
+    DEFINELINE=".Define LISTDIR <${E2G_GROUP_DIR}>"
+    # Replace the .Define line to point to our group
+    sed -i "s~^\.Define.*~${DEFINELINE}~g" ${E2GUARDIANF1}
 fi
