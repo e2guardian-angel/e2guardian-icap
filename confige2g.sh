@@ -18,28 +18,40 @@ remove_quotes () {
 }
 
 generate_phrase_list() {
-    for PHRASELIST in ${1}; do
+    for PHRASELIST in "${1}"; do
 	FILENAME=${E2G_ROOT}/lists/${E2G_GROUP}/$(extract_value "${PHRASELIST}" listName)
 	# Delete existing file
 	rm -f ${FILENAME}
-	for PHRASE in $(extract_value_compact "${PHRASELIST}" phrases); do
-	    PHRASELINE=""
-	    for TERM in $(echo "${PHRASE}" | jq -c .[]); do
-		PHRASELINE="${PHRASELINE}<${TERM}> "
+	IFS="
+	"
+	for GROUP in $(extract_value_compact "${PHRASELIST}" groups); do
+	    GROUPNAME=$(extract_value "${GROUP}" groupName)
+	    echo "#listcategory: \"${GROUPNAME}\"" >> ${FILENAME}
+	    for PHRASE in $(extract_value_compact "${GROUP}" phrases); do
+		PHRASELINE=""
+		for TERM in $(echo "${PHRASE}" | jq -c .[]); do
+		    PHRASELINE="${PHRASELINE}<${TERM}> "
+		done
+		PHRASELINE=$(echo "${PHRASELINE}" | xargs | tr ' ' ,)
+		echo ${PHRASELINE} >> ${FILENAME}
 	    done
-	    PHRASELINE=$(echo "${PHRASELINE}" | xargs | tr ' ' ,)
-	    echo ${PHRASELINE} >> ${FILENAME}
 	done
     done
 }
 
 generate_list() {
-    for LIST in ${1}; do
+    for LIST in "${1}"; do
 	LISTNAME=$(extract_value "${LIST}" listName)
 	FILENAME=${E2G_ROOT}/lists/${E2G_GROUP}/${LISTNAME}
 	rm -f ${FILENAME}
-	for ELEMENT in $(extract_value_compact "${LIST}" ${2}); do
-	    remove_quotes ${ELEMENT} >> ${FILENAME}
+	IFS="
+	"
+	for GROUP in $(extract_value_compact "${LIST}" groups); do
+	    GROUPNAME=$(extract_value "${GROUP}" groupName)
+	    echo "#listcategory: \"${GROUPNAME}\"" >> ${FILENAME}
+	    for ELEMENT in $(extract_value_compact "${GROUP}" ${2}); do
+		remove_quotes ${ELEMENT} >> ${FILENAME}
+	    done
 	done
     done
 }
@@ -54,7 +66,7 @@ if [ -f "${GUARDIAN_CONF}" ]; then
     SITELISTS=$(extract_value_compact "${E2G_CONF}" siteLists)
     REGEXPURLLISTS=$(extract_value_compact "${E2G_CONF}" regexpurllists)
     MIMETYPELISTS=$(extract_value_compact "${E2G_CONF}" mimetypelists)
-    EXTENSIONSLISTS=$(extract_value_compact "${E2G_CONF}" extensionsLists)
+    EXTENSIONSLISTS=$(extract_value_compact "${E2G_CONF}" extensionslists)
     cp -r ${E2G_ROOT}/lists/example.group ${E2G_GROUP_DIR}
 
     # Generate phrase lists
