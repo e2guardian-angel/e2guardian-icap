@@ -7,14 +7,12 @@ Baseimage
 ======================
 alpine:3.12.1
 
-**Note:** to use raspberry pi images, just replace the 'x86' in these image names with 'pi'.
-
 ### Quickstart 
 ```bash
 docker run --name e2guardian -d \
   --publish 1344:1344 \
   --volume /path/to/e2gaurdian/lists:/etc/e2guardian/lists \
-  jusschwa/e2guardian-icap-x86
+  jusschwa/e2guardian-icap
 ```
 
 ### For use with squid
@@ -27,5 +25,5 @@ docker run --name e2guardian -d \
   --network e2guardian
   --volume /path/to/e2gaurdian/lists:/etc/e2guardian/lists \
   --name e2guardian
-  jusschwa/e2guardian-icap-x86
+  jusschwa/e2guardian-icap
 ```

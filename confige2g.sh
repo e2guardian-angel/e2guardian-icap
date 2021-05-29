@@ -18,6 +18,9 @@ remove_quotes () {
 }
 
 generate_phrase_list() {
+    if [ ! "${1}" ]; then
+	return
+    fi
     for PHRASELIST in "${1}"; do
 	FILENAME=${E2G_ROOT}/lists/${E2G_GROUP}/$(extract_value "${PHRASELIST}" listName)
 	# Delete existing file
@@ -40,6 +43,9 @@ generate_phrase_list() {
 }
 
 generate_list() {
+    if [ ! "${1}" ]; then
+	return
+    fi
     for LIST in "${1}"; do
 	LISTNAME=$(extract_value "${LIST}" listName)
 	FILENAME=${E2G_ROOT}/lists/${E2G_GROUP}/${LISTNAME}
