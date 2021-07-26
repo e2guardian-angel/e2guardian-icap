@@ -4,6 +4,9 @@ CONFIG="$(cat $GUARDIAN_CONF)"
 E2G_GROUP=guardian.angel
 E2G_GROUP_DIR=${E2G_ROOT}/lists/${E2G_GROUP}
 # Set E2G_ROOT to the root of the e2guardian configuration (i.e. /etc/e2guardian)
+if [ ! -d "${E2G_GROUP_DIR}" ]; then
+    mkdir -p $E2G_GROUP_DIR
+fi
 
 extract_value () {
     echo "${1}" | jq -r .${2}
@@ -38,6 +41,10 @@ generate_phrase_list() {
 		PHRASELINE=$(echo "${PHRASELINE}" | xargs | tr ' ' ,)
 		echo ${PHRASELINE} >> ${FILENAME}
 	    done
+	    for INCLUDE in $(extract_value_compact "${GROUP}" includes); do
+		INCLUDELINE=$(echo ".Include<${INCLUDE}>")
+		echo ${INCLUDELINE} >> ${FILENAME}
+	    done
 	done
     done
 }
@@ -58,6 +65,10 @@ generate_list() {
 	    for ELEMENT in $(extract_value_compact "${GROUP}" ${2}); do
 		remove_quotes ${ELEMENT} >> ${FILENAME}
 	    done
+	done
+	for INCLUDE in $(extract_value_compact "${GROUP}" includes); do
+	    INCLUDELINE=$(echo ".Include<${INCLUDE}>")
+	    echo ${INCLUDELINE} >> ${FILENAME}
 	done
     done
 }
