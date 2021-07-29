@@ -4,9 +4,6 @@ CONFIG="$(cat $GUARDIAN_CONF)"
 E2G_GROUP=guardian.angel
 E2G_GROUP_DIR=${E2G_ROOT}/lists/${E2G_GROUP}
 # Set E2G_ROOT to the root of the e2guardian configuration (i.e. /etc/e2guardian)
-if [ ! -d "${E2G_GROUP_DIR}" ]; then
-    mkdir -p $E2G_GROUP_DIR
-fi
 
 extract_value () {
     echo "${1}" | jq -r .${2}
