@@ -1,33 +1,22 @@
-FROM alpine:latest as builder
-WORKDIR /tmp/buid
-ARG E2GUARDIAN_ROOT=/opt
-ARG VERSION=v5.4
-
-RUN mkdir -p ${E2GUARDIAN_ROOT} \
-  && apk add --update autoconf automake gcc cmake g++ zlib zlib-dev pcre2 pcre2-dev build-base gcc abuild binutils binutils-doc gcc-doc pcre pcre-dev git \
-  && git clone https://github.com/e2guardian/e2guardian.git -b ${VERSION} \
-  && cd e2guardian && ./autogen.sh && ./configure --prefix=${E2GUARDIAN_ROOT} && make && make install
-
 FROM alpine:latest
 MAINTAINER Justin Schwartzbeck <justinmschw@gmail.com>
-ARG E2GUARDIAN_ROOT=/opt
+ARG E2GUARDIAN_ROOT=/
 ARG GUARDIAN_GROUP=guardian.angel
+ARG VERSION
 
-COPY --from=builder /opt /opt
-
-RUN mkdir -p ${E2GUARDIAN_ROOT}/var/log/e2guardian \
-  && chown -R nobody:nobody ${E2GUARDIAN_ROOT}/ \
-  && chmod a+rw ${E2GUARDIAN_ROOT}/var/log/e2guardian \
-  && apk add --update pcre libgcc libstdc++ jq \
+RUN apk add --update e2guardian \
   && rm -rf /var/cache/apk/* \
-  && mv ${E2GUARDIAN_ROOT}/etc/e2guardian/lists/example.group ${E2GUARDIAN_ROOT}/etc/e2guardian/lists/${GUARDIAN_GROUP} \
-  && cp ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf.orig \
-  && cp ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf.orig \
-  && sed -i "s/^\#*\s*icapport/icapport/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf \
-  && sed -i "s/^\#*\s*maxcontentfiltersize.*$/maxcontentfiltersize=4096/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf \
-  && sed -i "s/^\#*\s*maxcontentramcachescansize.*$/maxcontentramcachescansize=4096/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardian.conf \
-  && sed -i "s/^\#*\s*textmimetypes/textmimetypes/g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf && \
-  sed -i "s~^\.Define.*~.Define LISTDIR <${E2GUARDIAN_ROOT}/etc/e2guardian/lists/${GUARDIAN_GROUP}>~g" ${E2GUARDIAN_ROOT}/etc/e2guardian/e2guardianf1.conf
+  && mkdir /var/run/e2guardian \
+  && chown -R e2guard:e2guard  /var/run/e2guardian \
+  && mv /etc/e2guardian/lists/example.group /etc/e2guardian/lists/${GUARDIAN_GROUP} \
+  && cp /etc/e2guardian/e2guardian.conf /etc/e2guardian/e2guardian.conf.orig \
+  && cp /etc/e2guardian/e2guardianf1.conf /etc/e2guardian/e2guardianf1.conf.orig \
+  && sed -i "s/^\#*\s*icapport/icapport/g" /etc/e2guardian/e2guardian.conf \
+  && sed -i "s/^\#*\s*maxcontentfiltersize.*$/maxcontentfiltersize=4096/g" /etc/e2guardian/e2guardian.conf \
+  && sed -i "s/^\#*\s*maxcontentramcachescansize.*$/maxcontentramcachescansize=4096/g" /etc/e2guardian/e2guardian.conf \
+  && echo "pidfilename = '/var/run/e2guardian/e2guardian.pid'" >> /etc/e2guardian/e2guardian.conf \
+  && sed -i "s/^\#*\s*textmimetypes/textmimetypes/g" /etc/e2guardian/e2guardianf1.conf \
+  && sed -i "s~^\.Define.*~.Define LISTDIR </etc/e2guardian/lists/${GUARDIAN_GROUP}>~g" /etc/e2guardian/e2guardianf1.conf
 
 WORKDIR /
 
@@ -36,5 +25,7 @@ RUN chmod +x /entrypoint.sh
 ENV E2GVERSION ${VERSION}
 
 EXPOSE 1344
+
+USER e2guard
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
