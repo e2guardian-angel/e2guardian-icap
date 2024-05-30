@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.19.1
 MAINTAINER Justin Schwartzbeck <justinmschw@gmail.com>
 ARG E2GUARDIAN_ROOT=/
 ARG GUARDIAN_GROUP=guardian.angel
